@@ -4,12 +4,16 @@ package um.fyp.MIDIObjects;
 import javax.sound.midi.*;
 import java.io.File;
 
+
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
+
+    //define missing MIDI control message opcodes
+    public static final int SET_TEMPO = 0x51;
     public static void main(String[] args) {
         try {
-            Sequence sequence = MidiSystem.getSequence(new File("D:\\users ssd\\Music\\sweep test.mid"));
+            Sequence sequence = MidiSystem.getSequence(new File("D:\\users ssd\\Music\\basic sparta pitch.mid"));
             Track track[] = sequence.getTracks();
             MidiEvent event = track[0].get(0);
 
