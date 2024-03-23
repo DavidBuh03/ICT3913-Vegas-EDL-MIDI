@@ -3,8 +3,6 @@ import um.fyp.GUIHelper.Window;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import java.util.ArrayList;
-import java.util.List;
 import java.awt.*;
 import java.io.File;
 

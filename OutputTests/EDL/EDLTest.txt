@@ -1,0 +1,1 @@
+1 1 0.0 10643.967 1.0 false false 0 true false VIDEO "D:\users ssd\Videos\new vegas exports\vodacom lordlite offset.mp4" 0 0.0 10643.967 0.0 0.0 1.0 4.0 0.0 4.0 0.0 0 -1 4.0 4.0 0.0 false 0 0
