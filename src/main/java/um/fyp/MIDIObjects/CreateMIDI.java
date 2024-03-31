@@ -21,12 +21,12 @@ public class CreateMIDI {
     public static final int POLY_ON = 0x7F;
     public static final int SET_TRACK_NAME = 0x03;
 
-    public static boolean enabledOmniAndPoly = false;
+    //public static boolean enabledOmniAndPoly = false;
 
 
 
     //creates the basic events in a MIDI file that initialise the file
-    public static void initialiseMIDI(Sequence sequence, int bpm, int numerator, int denominator) {
+    public static void initialiseMIDI(Sequence sequence, int bpm, int numerator, int denominator, boolean enableGM, boolean addEnd) {
         try {
             //create track in sequence
             Track t = sequence.createTrack();
@@ -42,6 +42,26 @@ public class CreateMIDI {
 
             t = sequence.createTrack();
 
+            if ((enableGM)) {
+                //-- Enable General MIDI SysEx event --
+
+                //define message byte array:
+                byte[] gmMessage = {(byte) 0xF0, //SysEx control byte
+                        0x7E, //Non-Realtime SysEx
+                        0x7F, //Set SysEx Channel (7F is disregard)
+                        0x09, //General MIDI (Enable or disable)
+                        0x01, //01 to enable, 00 to disable
+                        (byte) 0xF7 //End of SysEx message
+                };
+                //define sysex message
+                SysexMessage sysex = new SysexMessage();
+                //set message to the byte array
+                sysex.setMessage(gmMessage, 6);
+                //create event out of this message at tick 0
+                event = new MidiEvent(sysex, (long) 0);
+                //add this event to the track
+                t.add(event);
+            }
             //-- Set MIDI Tempo --
 
             //reset metamessage
@@ -63,7 +83,7 @@ public class CreateMIDI {
 
 
             //-- Define end of track (via method call) --
-            endTrack(t, 10);
+            if (addEnd) endTrack(t, 10);
 
 
 
@@ -72,7 +92,7 @@ public class CreateMIDI {
         }
     }
 
-    public static void newTrack(Sequence s, String name, int channel, int instrument) {
+    public static Track newTrack(Sequence s, String name, int channel, int instrument, boolean enabledOmniAndPoly) {
         try {
             Track t = s.createTrack();
             //define metamessage
@@ -101,9 +121,12 @@ public class CreateMIDI {
             event = new MidiEvent(sm, 0);
             //add this event to the track
             t.add(event);
+
+            return t;
         } catch (Exception e) {
             handleException(e);
         }
+        return null;
 
 
     }
@@ -187,7 +210,7 @@ public class CreateMIDI {
     }
 
 
-    public static long addNote(Track t, int tickLength, int note, float startMillis, float lengthMillis, float volume) {
+    public static long addNote(Track t, int tickLength, int note, double startMillis, double lengthMillis, double volume) {
         try {
             long startTick = (long)(startMillis*1000)/tickLength;
             long OffsetTick = (long)(lengthMillis*1000)/tickLength;
@@ -227,8 +250,8 @@ public class CreateMIDI {
     public static void main (String[] args) {
         try {
             Sequence s = new Sequence(Sequence.PPQ, 24);
-            initialiseMIDI(s, 60, 4, 4);
-            newTrack(s, "Track", 0, 0);
+            initialiseMIDI(s, 60, 4, 4, true, true);
+            newTrack(s, "Track", 0, 0, true);
             int tickLength = getTickLength(s);
             Track[] tracks = s.getTracks();
             long endTick = 0;

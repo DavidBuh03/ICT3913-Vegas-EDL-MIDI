@@ -39,10 +39,10 @@ public abstract class Window {
         if (repaint) frame.repaint();
     }
 
-    public void initSize(int width, int height) {
+    public void initSize(int width, int height, boolean center) {
         this.frame.pack();
         this.frame.setSize(width, height);
-        this.frame.setLocationRelativeTo(null);
+        if (center) this.frame.setLocationRelativeTo(null);
         this.frame.setVisible(true);
     }
 
@@ -71,7 +71,7 @@ public abstract class Window {
         }
         if (mainWindow) {
             uiElements();
-            initSize(width, height);
+            initSize(width, height, center);
         }
 
 

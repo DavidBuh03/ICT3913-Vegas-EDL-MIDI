@@ -5,7 +5,6 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-
 public class EDL {
     int id; //to be filled in by counter / lost when converting to MIDI
     int track; //audio track number to be translated to MIDI, video track number lost
@@ -37,7 +36,6 @@ public class EDL {
     boolean lockPitch; //always false
     int firstChannel; //always 0
     int channels; //always 0
-
     public EDL(int id, int track, double startTime, double length, double playRate, boolean locked, boolean normalized, int stretchMethod, boolean looped, boolean onRuler, boolean mediaType, String fileName, int stream, double streamStart, double streamLength, double fadeTimeIn, double fadeTimeOut, double sustainGain, int curveIn, double gainIn, int curveOut, double gainOut, int layer, int color, int curveInR, int curveOutR, double playPitch, boolean lockPitch, int firstChannel, int channels) {
         this.id = id;
         this.track = track;

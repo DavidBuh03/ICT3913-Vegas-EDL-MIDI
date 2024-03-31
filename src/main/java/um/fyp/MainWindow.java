@@ -1,12 +1,16 @@
 package um.fyp;
+import um.fyp.EDLObjects.TrackTimings;
 import um.fyp.GUIHelper.Window;
 import um.fyp.Config.EDLConfig;
+import um.fyp.MIDIObjects.MIDIConfig;
+
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.util.List;
 import java.util.ArrayList;
@@ -20,9 +24,12 @@ public class MainWindow extends Window {
 
     JList<String> componentList;
     JButton edit;
+    JButton convert;
 
     DefaultListModel<String> fileInfo;
-    List<EDLConfig> configs = new ArrayList<EDLConfig>();
+    public static List<EDLConfig> configs = new ArrayList<EDLConfig>();
+
+    public static MIDIConfig midiConfig = new MIDIConfig();
 
     int[] trackInfo;
     int selectedIndex;
@@ -30,7 +37,7 @@ public class MainWindow extends Window {
     boolean edlLoaded;
 
     public MainWindow() {
-        super(480, 480, "Vegas EDL MIDI Converter", true, true);
+        super(560, 480, "Vegas EDL MIDI Converter", true, true);
     }
 
     @Override
@@ -55,6 +62,20 @@ public class MainWindow extends Window {
                 loadedMIDI = new File(chooser.getSelectedFile().getAbsolutePath());
                 ((JLabel)((JPanel)getComponents().get(0)).getComponent(0)).setText("MIDI Loaded: " + chooser.getSelectedFile().getName());
                 MidiToEdl.setTrackList(loadedMIDI, fileInfo, configs);
+                removeMouseListenersFromList();
+                addMouseListenersToList();
+                convert.setText("Convert To EDL");
+                if (convert.getActionListeners().length != 0) convert.removeActionListener(convert.getActionListeners()[0]);
+                convert.addActionListener(c -> {
+                    //configs = EdlToMidi.configure(loadedEDL);
+                    MidiToEdl.convertToEdl(loadedMIDI, configs);
+                });
+
+                if (edit.getActionListeners().length != 0) edit.removeActionListener(edit.getActionListeners()[0]);
+                edit.addActionListener(c -> {
+                    new EDLConfigWindow(configs.get(selectedIndex));
+                });
+
 
 
             }
@@ -68,6 +89,22 @@ public class MainWindow extends Window {
                 loadedEDL = new File(chooser.getSelectedFile().getAbsolutePath());
                 ((JLabel)((JPanel)getComponents().get(0)).getComponent(0)).setText("EDL Loaded: " + chooser.getSelectedFile().getName());
                 EdlToMidi.setTrackList(loadedEDL, fileInfo, configs);
+                removeMouseListenersFromList();
+                midiConfig = MIDIConfig.defaults();
+                convert.setText("Convert To MIDI");
+
+                if (convert.getActionListeners().length != 0) convert.removeActionListener(convert.getActionListeners()[0]);
+                convert.addActionListener(c -> {
+                    configs = EdlToMidi.configure(loadedEDL);
+                    EdlToMidi.convertToMidi(loadedEDL, configs, midiConfig);
+                });
+
+                edit.setText("Edit MIDI parameters");
+                edit.setEnabled(true);
+                if (edit.getActionListeners().length != 0) edit.removeActionListener(edit.getActionListeners()[0]);
+                edit.addActionListener(c -> {
+                    new MIDIConfigWindow(midiConfig);
+                });
             }
         });
 
@@ -99,24 +136,10 @@ public class MainWindow extends Window {
         midPanel.setBorder(new TitledBorder("File information"));
         fileInfo = new DefaultListModel<>();
         componentList = new JList<String>();
-        componentList.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) {
-                JList list = (JList)e.getSource();
-                if (e.getClickCount() == 1) {
-                    edit.setEnabled(true);
-                    selectedIndex = list.locationToIndex(e.getPoint()) + 1;
-                    edit.setText("Edit Track " + selectedIndex);
 
-                }
-                if (e.getClickCount() == 2) {
-                    new ConfigWindow(configs.get(list.locationToIndex(e.getPoint())));
-                    //JOptionPane.showMessageDialog(null, list.locationToIndex(e.getPoint()));
-                }
-
-            }
-        });
 
         componentList.setModel(fileInfo);
+        componentList.setEnabled(false);
         JScrollPane scroll = new JScrollPane(componentList);
         midPanel.add(scroll, BorderLayout.CENTER);
 
@@ -125,7 +148,7 @@ public class MainWindow extends Window {
         JPanel bottomPanel = new JPanel();
         bottomPanel.setLayout(new GridLayout(1,2));
 
-        JButton convert = new JButton("Convert (Test)");
+        convert = new JButton("Convert (Test)");
         convert.setFont(font);
         edit = new JButton("Edit (Test)");
         edit.setFont(font);
@@ -138,6 +161,29 @@ public class MainWindow extends Window {
 
 
 
+    }
+    public void addMouseListenersToList() {
+        componentList.setEnabled(true);
+        componentList.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                JList list = (JList)e.getSource();
+                if (e.getClickCount() == 1) {
+                    edit.setEnabled(true);
+                    selectedIndex = list.locationToIndex(e.getPoint());
+                    edit.setText("Edit Track " + (selectedIndex+1));
+
+                }
+                if (e.getClickCount() == 2) {
+                    new EDLConfigWindow(configs.get(list.locationToIndex(e.getPoint())));
+                    //JOptionPane.showMessageDialog(null, list.locationToIndex(e.getPoint()));
+                }
+
+            }
+        });
+    }
+    public void removeMouseListenersFromList() {
+        componentList.setEnabled(false);
+        if (componentList.getMouseListeners().length > 2) componentList.removeMouseListener(componentList.getMouseListeners()[2]);
     }
 
 

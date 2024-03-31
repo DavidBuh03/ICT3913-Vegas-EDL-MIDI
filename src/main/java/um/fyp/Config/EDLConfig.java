@@ -153,7 +153,7 @@ public class EDLConfig {
         EDLConfig defaults = new EDLConfig();
         defaults.edited = false;
         defaults.track = track;
-        defaults.includeVideo = true;
+        defaults.includeVideo = false;
         defaults.alternateTracks = false;
         defaults.pitchOffset = 0;
         defaults.fileName = "D:\\users ssd\\Videos\\new vegas exports\\psx.wav";

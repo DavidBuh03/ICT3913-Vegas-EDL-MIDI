@@ -13,7 +13,7 @@ import java.util.List;
 import static java.lang.Math.floor;
 import static um.fyp.Config.EDLConfig.*;
 
-public class ConfigWindow extends Window {
+public class EDLConfigWindow extends Window {
     JLabel trackName;
     JLabel defaultsStatus;
     JCheckBox includeVideo;
@@ -25,11 +25,11 @@ public class ConfigWindow extends Window {
     int index;
 
 
-    public ConfigWindow(EDLConfig config) {
+    public EDLConfigWindow(EDLConfig config) {
 
         super(480, 530, "Edit track", true, false);
         uiElements();
-        initSize(480, 530);
+        initSize(480, 530, true);
         setElements(config);
         index = config.track-1;
     }

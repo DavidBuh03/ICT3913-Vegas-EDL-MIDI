@@ -9,7 +9,7 @@ public class HelpWindow extends Window {
     public HelpWindow() {
         super(320, 240, "About", true, false);
         uiElements();
-        initSize(320, 240);
+        initSize(320, 240, true);
         getFrame().setLayout(new GridLayout(2, 1));
     }
 
