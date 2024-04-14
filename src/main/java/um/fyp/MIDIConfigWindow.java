@@ -7,24 +7,27 @@ import um.fyp.MIDIObjects.MIDIConfig;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.List;
 
 import static um.fyp.Config.EDLConfig.guiParameters;
 import static um.fyp.Config.EDLConfig.numericComboBoxes;
+import static um.fyp.EDLConfigWindow.*;
 import static um.fyp.MIDIObjects.MIDIConfig.descriptions;
 import static um.fyp.MIDIObjects.MIDIConfig.fields;
 
 public class MIDIConfigWindow extends Window {
 
     List<JPanel> textFieldPairs;
+    JLabel errorName;
     JComboBox<String> numerator;
     JComboBox<String> denominator;
+    JButton save;
     public MIDIConfigWindow(MIDIConfig config) {
-        super(450, 320, "Configure MIDI", true, false);
-        uiElements();
+        super(480, 320, "Configure MIDI", true, false);
         setElements(config);
-        initSize(480, 320, true);
     }
 
     @Override
@@ -46,8 +49,8 @@ public class MIDIConfigWindow extends Window {
         savedConfig.ppq = Integer.parseInt(((JTextField)textFieldPairs.get(0).getComponent(1)).getText());
         savedConfig.bpm = Integer.parseInt(((JTextField)textFieldPairs.get(1).getComponent(1)).getText());
         savedConfig.timeSignature = new int[] {numerator.getSelectedIndex()+1, (denominator.getSelectedIndex()+1)*4};
-        savedConfig.sysGM = ((JCheckBox)textFieldPairs.get(2).getComponent(0)).isSelected();
-        savedConfig.omniPoly = ((JCheckBox)textFieldPairs.get(3).getComponent(0)).isSelected();
+        savedConfig.sysGM = ((JCheckBox)textFieldPairs.get(3).getComponent(0)).isSelected();
+        savedConfig.omniPoly = ((JCheckBox)textFieldPairs.get(4).getComponent(0)).isSelected();
 
         MainWindow.midiConfig = savedConfig;
     }
@@ -86,6 +89,44 @@ public class MIDIConfigWindow extends Window {
                 textFieldpair.add(fieldName, BorderLayout.WEST);
                 if (i < 2) {
                     JTextField fieldInput = new JTextField();
+                    fieldInput.addKeyListener(new KeyListener() {
+
+                        @Override
+                        public void keyTyped(KeyEvent e) {
+                            if (EDLConfigWindow.isValidNumber(fieldInput.getText())) {
+                                fieldName.setForeground(defaultColor);
+                                errorName.setVisible(false);
+                                save.setEnabled(true);
+                            }
+                            else {
+                                fieldName.setForeground(Color.RED);
+                                errorName.setVisible(true);
+                                errorName.setText(errorMessage);
+                                save.setEnabled(false);
+                            }
+                        }
+
+                        @Override
+                        public void keyPressed(KeyEvent e) {
+
+                        }
+
+                        @Override
+                        public void keyReleased(KeyEvent e) {
+                            if (EDLConfigWindow.isValidNumber(fieldInput.getText())) {
+                                fieldName.setForeground(defaultColor);
+                                errorName.setVisible(false);
+                                save.setEnabled(true);
+                            }
+                            else {
+                                fieldName.setForeground(Color.RED);
+                                errorName.setVisible(true);
+                                errorName.setText(errorMessage);
+                                save.setEnabled(false);
+                            }
+                        }
+                    });
+
                     textFieldpair.add(fieldInput, BorderLayout.CENTER);
                 } else {
                     textFieldpair.add(timeSignature, BorderLayout.CENTER);
@@ -112,6 +153,14 @@ public class MIDIConfigWindow extends Window {
             textFieldPairs.add(textFieldpair);
             middlePanel.add(textFieldpair);
         }
+        JPanel error = new JPanel();
+        error.setLayout(new BorderLayout());
+        errorName = new JLabel("Error: ");
+        errorName.setFont(textFont);
+        errorName.setForeground(Color.RED);
+        errorName.setVisible(false);
+        error.add(errorName);
+        middlePanel.add(error);
 
 
         add(middlePanel, BorderLayout.CENTER, false);
@@ -123,7 +172,7 @@ public class MIDIConfigWindow extends Window {
         cancel.setFont(buttonFont);
         JButton loadDefaults = new JButton("Load Defaults");
         loadDefaults.setFont(buttonFont);
-        JButton save = new JButton("Save");
+        save = new JButton("Save");
         save.setFont(buttonFont);
 
         cancel.addActionListener(e -> {
@@ -132,6 +181,10 @@ public class MIDIConfigWindow extends Window {
 
         loadDefaults.addActionListener(e -> {
             setElements(MIDIConfig.defaults());
+            textFieldPairs.get(0).getComponent(0).setForeground(defaultColor);
+            textFieldPairs.get(1).getComponent(0).setForeground(defaultColor);
+            errorName.setVisible(false);
+            save.setEnabled(true);
         });
 
         save.addActionListener(e -> {

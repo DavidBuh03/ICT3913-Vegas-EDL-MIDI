@@ -1,7 +1,11 @@
 package um.fyp.Config;
 
 import um.fyp.EDLObjects.EDL;
+import um.fyp.EdlToMidi;
+import um.fyp.MainWindow;
 
+import javax.swing.*;
+import java.io.*;
 import java.text.DecimalFormat;
 import java.util.*;
 
@@ -59,6 +63,24 @@ public class EDLConfig {
         s.close();
         
         return result;
+    }
+
+    public static EDLConfig lineToEDL(String[] line) {
+        return new EDLConfig(
+                Boolean.parseBoolean(line[0]),
+                Integer.parseInt(line[1]),
+                Boolean.parseBoolean(line[2]),
+                Boolean.parseBoolean(line[3]),
+                Integer.parseInt(line[4]),
+                line[5],
+                Double.parseDouble(line[6]),
+                Double.parseDouble(line[7]),
+                Double.parseDouble(line[8]),
+                Double.parseDouble(line[9]),
+                Integer.parseInt(line[10]),
+                Integer.parseInt(line[11]),
+                Integer.parseInt(line[12])
+        );
     }
     public static String toString(EDLConfig config) {
         DecimalFormat fourDigits = new DecimalFormat("0.0000");
@@ -132,9 +154,10 @@ public class EDLConfig {
         return filename.substring(filename.lastIndexOf("\\")+1);
     }
 
-    public static EDLConfig defaultsNoFile() {
+    public static EDLConfig defaultsNoFile(int track) {
         EDLConfig defaults = new EDLConfig();
         defaults.edited = false;
+        defaults.track = track;
         defaults.includeVideo = true;
         defaults.alternateTracks = false;
         defaults.pitchOffset = 0;
@@ -153,12 +176,12 @@ public class EDLConfig {
         EDLConfig defaults = new EDLConfig();
         defaults.edited = false;
         defaults.track = track;
-        defaults.includeVideo = false;
-        defaults.alternateTracks = false;
+        defaults.includeVideo = true;
+        defaults.alternateTracks = true;
         defaults.pitchOffset = 0;
-        defaults.fileName = "D:\\users ssd\\Videos\\new vegas exports\\psx.wav";
+        defaults.fileName = "D:\\users ssd\\Downloads\\middle c.mp4";
         defaults.playRate = 1;
-        defaults.streamStart = 2 + rand.nextDouble(118);
+        defaults.streamStart = 0;
         defaults.fadeTimeIn = 0.01;
         defaults.fadeTimeOut = 0.01;
         defaults.stretchMethod = 2;
@@ -167,6 +190,60 @@ public class EDLConfig {
 
         return defaults;
     }
+
+    public static boolean saveConfigToFile(List<EDLConfig> configs, File outputFile) {
+        try {
+            FileWriter fw = new FileWriter(outputFile);
+            fw.write(header());
+            for(EDLConfig conf : configs) {
+                fw.write(toString(conf));
+            }
+            fw.close();
+            return true;
+
+
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return false;
+        }
+
+    }
+
+    public static boolean loadConfigFromFile(File loadedConfig, DefaultListModel<String> fileInfo, List<EDLConfig> configs) {
+        String row;
+        int counter = -1;
+        try (BufferedReader br = new BufferedReader(new FileReader(loadedConfig))) {
+            br.readLine();
+
+            while ((row = br.readLine()) != null) {
+                counter++;
+                String[] rowSplit = row.split("; ");
+                if (Boolean.parseBoolean(rowSplit[0])) {
+                    if (fileInfo.getElementAt((counter)).contains("Default")) {
+                        fileInfo.set((counter), fileInfo.getElementAt((counter)).replace("Default settings loaded", "Settings customised"));
+                    }
+                }
+                else {
+                    if (fileInfo.getElementAt((counter)).contains("customised")) {
+                        fileInfo.set((counter), fileInfo.getElementAt((counter)).replace("Settings customised", "Default settings loaded"));
+                    }
+                }
+                configs.set(counter, lineToEDL(rowSplit));
+                
+            }
+            return true;
+
+
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return false;
+        }
+    }
+
+
+
     public static EDLConfig edlToConfig(EDL edl) {
         return new EDLConfig();
 

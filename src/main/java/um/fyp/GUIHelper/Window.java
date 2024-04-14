@@ -69,10 +69,8 @@ public abstract class Window {
                 }
             });
         }
-        if (mainWindow) {
             uiElements();
             initSize(width, height, center);
-        }
 
 
 

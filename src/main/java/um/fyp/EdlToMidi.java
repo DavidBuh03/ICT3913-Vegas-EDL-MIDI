@@ -107,11 +107,11 @@ public class EdlToMidi {
                         //|| (lastFadeTimeOut.contains(Double.parseDouble(rowSplit[16])) && lastFadeTimeOut.getLast()!=Double.parseDouble(rowSplit[16]))
                     )
                     {
-                        lastTrackTimings.add(Double.parseDouble(rowSplit[13]));
+                        lastTrackTimings.add(Double.parseDouble(rowSplit[13])/1000);
                         lastPlayRate.add(Double.parseDouble(rowSplit[4]));
                         lastFadeTimeIn.add(Double.parseDouble(rowSplit[15]));
                         lastFadeTimeOut.add(Double.parseDouble(rowSplit[16]));
-                        lastFilePaths.add(rowSplit[11]);
+                        lastFilePaths.add(rowSplit[11].substring(1, (rowSplit[11].length()-1)));
                     }
 
                 }
@@ -119,13 +119,13 @@ public class EdlToMidi {
                     trackCounter++;
                     trackEventCount = 1;
                     lastTrackNumber = Integer.parseInt(rowSplit[1]);
-                    lastTrackTimings.add(Double.parseDouble(rowSplit[13]));
+                    lastTrackTimings.add(Double.parseDouble(rowSplit[13])/1000);
                     lastPlayRate.add(Double.parseDouble(rowSplit[4]));
                     lastFadeTimeIn.add(Double.parseDouble(rowSplit[15]));
                     lastFadeTimeOut.add(Double.parseDouble(rowSplit[16]));
                     lastCurveIn = Integer.parseInt(rowSplit[18]);
                     lastCurveOut = Integer.parseInt(rowSplit[20]);
-                    lastFilePaths.add(rowSplit[11]);
+                    lastFilePaths.add(rowSplit[11].substring(1, (rowSplit[11].length()-1)));
 
 
 
