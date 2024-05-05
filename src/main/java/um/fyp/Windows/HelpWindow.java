@@ -1,4 +1,4 @@
-package um.fyp;
+package um.fyp.Windows;
 import um.fyp.GUIHelper.Window;
 import javax.swing.*;
 import java.awt.*;
@@ -31,7 +31,7 @@ public class HelpWindow extends Window {
         title.setHorizontalAlignment(SwingConstants.CENTER);
         topPanel.add(title);
 
-        JLabel credits = new JLabel("Created for ICT3913 FYP 2024", SwingConstants.CENTER);
+        JLabel credits = new JLabel("Created by David Buhagiar for ICT3913 FYP 2024", SwingConstants.CENTER);
         bottomPanel.add(credits, false);
 
         JButton close = new JButton("Close");

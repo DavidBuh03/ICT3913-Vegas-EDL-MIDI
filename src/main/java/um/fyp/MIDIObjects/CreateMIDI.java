@@ -246,6 +246,14 @@ public class CreateMIDI {
 
     }
 
+    public static void writeMIDIToFile(Sequence sequence, File file) {
+        try {
+            MidiSystem.write(sequence, 1, file);
+        } catch (Exception e) {
+            handleException(e);
+        }
+    }
+
 
     public static void main (String[] args) {
         try {

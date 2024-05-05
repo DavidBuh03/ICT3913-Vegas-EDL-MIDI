@@ -1,10 +1,9 @@
-package um.fyp;
+package um.fyp.Conversion;
 
 import um.fyp.Config.EDLConfig;
-import um.fyp.EDLObjects.EDL;
 import um.fyp.EDLObjects.TrackTimings;
 import um.fyp.MIDIObjects.CreateMIDI;
-import um.fyp.MIDIObjects.MIDIConfig;
+import um.fyp.Config.MIDIConfig;
 
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
@@ -18,7 +17,7 @@ import java.util.List;
 import java.util.Scanner;
 
 public class EdlToMidi {
-    public static void setTrackList(File inputEdl, DefaultListModel<String> model, List<EDLConfig> configs) {
+    public static boolean setTrackList(File inputEdl, DefaultListModel<String> model, List<EDLConfig> configs) {
         model.removeAllElements();
         configs.removeAll(configs);
         int lastTrackNumber = 0;
@@ -29,7 +28,6 @@ public class EdlToMidi {
         Scanner read;
         String row;
         String mediaType = "";
-        EDL lastEvent;
         boolean trackRead = false;
         try (BufferedReader br = new BufferedReader(new FileReader(inputEdl))) {
             //skip header
@@ -37,25 +35,28 @@ public class EdlToMidi {
 
             while ((row = br.readLine()) != null) {
                 String[] rowSplit = row.split("; ");
-                if (trackRead && Integer.parseInt(rowSplit[1])!= lastTrackNumber) {
-                    trackRead = false;
-                    model.addElement("Track " + trackCounter + " - " + mediaType + " - First Timing:" + (firstTiming/1000)*playRate + " seconds - " + trackEventCount + " events");
-                } else if (trackRead) {
+                if (Integer.parseInt(rowSplit[1]) == lastTrackNumber && rowSplit[10].equals(mediaType)) {
                     trackEventCount++;
                 }
-                if (!trackRead) {
+                else {
+                    if (trackCounter>0) {
+                        model.addElement("Track " + trackCounter + " - " + mediaType + " - First Timing:" + (firstTiming/1000)*playRate + " seconds - " + trackEventCount + " events");
+                        Thread.sleep(3);
+                    }
                     trackCounter++;
                     trackEventCount = 1;
                     lastTrackNumber = Integer.parseInt(rowSplit[1]);
                     firstTiming = Double.parseDouble(rowSplit[13]);
                     playRate = Double.parseDouble(rowSplit[4]);
                     mediaType = rowSplit[10];
-                    trackRead = true;
                 }
             }
             model.addElement("Track " + trackCounter + " - " + mediaType + " - First Timing:" + (firstTiming/1000)*playRate + " seconds - " + trackEventCount + " events");
+            Thread.sleep(10);
+            return true;
         } catch (Exception e) {
             System.out.println(e.getMessage());
+            return false;
         }
 
     }
@@ -77,7 +78,6 @@ public class EdlToMidi {
         Scanner read;
         String row;
         String mediaType = "";
-        EDL lastEvent;
         List<String> lastFilePaths = new ArrayList<>();
         boolean trackRead = false;
         try (BufferedReader br = new BufferedReader(new FileReader(inputEdl))) {
@@ -86,7 +86,7 @@ public class EdlToMidi {
 
             while ((row = br.readLine()) != null) {
                 String[] rowSplit = row.split("; ");
-                if (trackRead && Integer.parseInt(rowSplit[1])!= lastTrackNumber) {
+                if (trackRead && (Integer.parseInt(rowSplit[1])!= lastTrackNumber || !rowSplit[10].equals(mediaType))) {
                     allTimings.add(new TrackTimings(mediaType, lastTrackTimings, lastPlayRate, lastFadeTimeIn, lastFadeTimeOut, lastFilePaths, lastCurveIn, lastCurveOut));
                     lastTrackTimings = new ArrayList<>();
                     lastPlayRate = new ArrayList<>();
@@ -98,11 +98,11 @@ public class EdlToMidi {
                 } else if (trackRead) {
                     trackEventCount++;
 
-                    if (!lastTrackTimings.contains(Double.parseDouble(rowSplit[13]))
+                    if (!lastTrackTimings.contains(Double.parseDouble(rowSplit[13])/1000)
                         || !lastPlayRate.contains(Double.parseDouble(rowSplit[4]))
                         //|| !lastFadeTimeIn.contains(Double.parseDouble(rowSplit[15]))
                         //|| !lastFadeTimeOut.contains(Double.parseDouble(rowSplit[16]))
-                        || !lastFilePaths.contains(rowSplit[11])
+                        || !lastFilePaths.contains(rowSplit[11].substring(1, (rowSplit[11].length()-1)))
                         //|| (lastFadeTimeIn.contains(Double.parseDouble(rowSplit[15])) && lastFadeTimeIn.getLast()!=Double.parseDouble(rowSplit[15]))
                         //|| (lastFadeTimeOut.contains(Double.parseDouble(rowSplit[16])) && lastFadeTimeOut.getLast()!=Double.parseDouble(rowSplit[16]))
                     )
@@ -177,13 +177,15 @@ public class EdlToMidi {
         return null;
     }
 
-    public static void convertToMidi(File inputEdl, List<EDLConfig> configs, MIDIConfig midiConfig) {
+    public static void convertToMidi(File inputEdl, List<EDLConfig> configs, MIDIConfig midiConfig, File outputFile, JLabel status) {
         DecimalFormat fourDigits = new DecimalFormat("0.0000");
         DecimalFormat sixDigits = new DecimalFormat("0.000000");
         String row;
         Track currentTrack;
 
         long endTick = 0;
+        status.setText("Conversion started");
+        status.repaint();
         try {
             int trackNum = 0;
             Sequence sequence = new Sequence(Sequence.PPQ, midiConfig.ppq);
@@ -192,6 +194,8 @@ public class EdlToMidi {
             int tickLength = CreateMIDI.getTickLength(sequence);
             for (EDLConfig c : configs) {
                 trackNum++;
+                status.setText("Processing track " + (trackNum) + "/" + (configs.size()));
+                status.repaint();
                 if (trackNum == 1) {
                     currentTrack = CreateMIDI.newTrack(sequence, "Track " + trackNum + " - " + c.fileName + ": " + c.streamStart, 0, 0, midiConfig.omniPoly);
                 } else {
@@ -205,12 +209,12 @@ public class EdlToMidi {
                         String[] rowSplit = row.split("; ");
                         if (rowSplit[10].equals("AUDIO")) {
                             if (       rowSplit[1].equals(String.valueOf(c.track))
-                                    && rowSplit[11].equals(c.fileName)
+                                    && rowSplit[11].substring(1, (rowSplit[11].length()-1)).equals(c.fileName)
                                     && rowSplit[4].equals(sixDigits.format(c.playRate))
-                                    && rowSplit[13].equals(fourDigits.format(c.streamStart))
+                                    && rowSplit[13].equals(fourDigits.format(c.streamStart*1000))
                                     //&& rowSplit[15].equals(fourDigits.format(c.fadeTimeIn))
                                     //&& rowSplit[16].equals(fourDigits.format(c.fadeTimeOut))
-                                    && rowSplit[7].equals(String.valueOf(c.stretchMethod))
+                                    //&& rowSplit[7].equals(String.valueOf(c.stretchMethod))
                                 //&& rowSplit[18].equals(String.valueOf(c.curveIn))
                                 //&& rowSplit[20].equals(String.valueOf(c.curveOut))
                             )
@@ -227,42 +231,16 @@ public class EdlToMidi {
                             }
                         }
                     }
-                    //endTrack
-
                 }
                 for (Track track : sequence.getTracks()) {
                     CreateMIDI.endTrack(track, endTick);
                 }
-                CreateMIDI.writeMIDIToFile(sequence, "OutputTests\\MIDI\\TheKantapapa Original Test.mid");
-
+                CreateMIDI.writeMIDIToFile(sequence, outputFile);
             }
-
-
-
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-
-
-
-
-
-
-
-
-        try (BufferedReader br = new BufferedReader(new FileReader(inputEdl))) {
-            br.readLine();
-
-            //while ()
-
-
-
+            status.setText("Conversion successful!");
+            status.repaint();
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
-
-
-
 }
-//List<ArrayList<EDL>> tracks = new ArrayList<ArrayList<EDL>>();

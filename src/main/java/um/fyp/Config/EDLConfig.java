@@ -1,15 +1,10 @@
 package um.fyp.Config;
-
-import um.fyp.EDLObjects.EDL;
-import um.fyp.EdlToMidi;
-import um.fyp.MainWindow;
-
 import javax.swing.*;
 import java.io.*;
 import java.text.DecimalFormat;
 import java.util.*;
 
-public class EDLConfig {
+public class EDLConfig implements Cloneable {
 
     public boolean edited; //added in cause i needed to discern customised from default
     public int track; //audio track number to be translated to MIDI, video track number lost
@@ -42,6 +37,7 @@ public class EDLConfig {
     }
 
     //had to implement my own csv writer and reader for this format
+    //THIS METHOD IS SLOW - DO NOT USE
     public static EDLConfig lineToEDL(String line) {
         Scanner s = new Scanner(line);
         s.useDelimiter("; ");
@@ -64,7 +60,7 @@ public class EDLConfig {
         
         return result;
     }
-
+    //USE THIS METHOD INSTEAD
     public static EDLConfig lineToEDL(String[] line) {
         return new EDLConfig(
                 Boolean.parseBoolean(line[0]),
@@ -105,6 +101,11 @@ public class EDLConfig {
 
     public static String header() {
         return "\"Edited\";\"Track\";\"IncludeVideo\";\"AlternateTracks\";\"PitchOffset\";\"FileName\";\"PlayRate\";\"StreamStart\";\"FadeTimeIn\";\"FadeTimeOut\";\"StretchMethod\";\"CurveIn\";\"CurveOut\"\n";
+    }
+
+    public static String edlHeader(boolean lineBreak) {
+        if (lineBreak) return "\"ID\";\"Track\";\"StartTime\";\"Length\";\"PlayRate\";\"Locked\";\"Normalized\";\"StretchMethod\";\"Looped\";\"OnRuler\";\"MediaType\";\"FileName\";\"Stream\";\"StreamStart\";\"StreamLength\";\"FadeTimeIn\";\"FadeTimeOut\";\"SustainGain\";\"CurveIn\";\"GainIn\";\"CurveOut\";\"GainOut\";\"Layer\";\"Color\";\"CurveInR\";\"CurveOutR\";\"PlayPitch\";\"LockPitch\";\"FirstChannel\";\"Channels\"\n";
+        else return "\"ID\";\"Track\";\"StartTime\";\"Length\";\"PlayRate\";\"Locked\";\"Normalized\";\"StretchMethod\";\"Looped\";\"OnRuler\";\"MediaType\";\"FileName\";\"Stream\";\"StreamStart\";\"StreamLength\";\"FadeTimeIn\";\"FadeTimeOut\";\"SustainGain\";\"CurveIn\";\"GainIn\";\"CurveOut\";\"GainOut\";\"Layer\";\"Color\";\"CurveInR\";\"CurveOutR\";\"PlayPitch\";\"LockPitch\";\"FirstChannel\";\"Channels\"";
     }
 
     public static String[] guiParameters = {
@@ -162,7 +163,7 @@ public class EDLConfig {
         defaults.alternateTracks = false;
         defaults.pitchOffset = 0;
         defaults.playRate = 1;
-        defaults.streamStart = 2 + rand.nextDouble(118);
+        defaults.streamStart = 2 + rand.nextDouble(120);
         defaults.fadeTimeIn = 0.01;
         defaults.fadeTimeOut = 0.01;
         defaults.stretchMethod = 2;
@@ -195,8 +196,12 @@ public class EDLConfig {
         try {
             FileWriter fw = new FileWriter(outputFile);
             fw.write(header());
+            int count = 0;
             for(EDLConfig conf : configs) {
-                fw.write(toString(conf));
+                count++;
+                EDLConfig auxConfig = (EDLConfig) conf.clone();
+                auxConfig.track = count;
+                fw.write(toString(auxConfig));
             }
             fw.close();
             return true;
@@ -242,10 +247,14 @@ public class EDLConfig {
         }
     }
 
-
-
-    public static EDLConfig edlToConfig(EDL edl) {
-        return new EDLConfig();
+    @Override
+    public Object clone() {
+        try {
+            return super.clone();
+        } catch (CloneNotSupportedException cnse) {
+            System.out.println("Clone not supported");
+        }
+        return null;
 
     }
 

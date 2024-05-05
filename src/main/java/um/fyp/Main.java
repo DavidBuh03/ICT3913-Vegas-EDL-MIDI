@@ -1,11 +1,15 @@
 package um.fyp;
+import um.fyp.Windows.MainWindow;
 
-import um.fyp.Config.EDLConfig;
-import um.fyp.MIDIObjects.MIDIConfig;
-
+import javax.swing.*;
 
 public class Main {
     public static void main(String[] args) {
-        MainWindow window = new MainWindow();
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new MainWindow();
+            }
+        });
     }
 }

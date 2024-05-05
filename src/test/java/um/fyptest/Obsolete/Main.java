@@ -1,4 +1,4 @@
-package um.fyp.MIDIObjects;
+package um.fyptest.Obsolete;
 
 
 import javax.sound.midi.*;

@@ -1,4 +1,4 @@
-package um.fyp;
+package um.fyp.Windows;
 
 import um.fyp.Config.EDLConfig;
 import um.fyp.GUIHelper.Window;
@@ -15,6 +15,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.lang.Math.ceil;
 import static java.lang.Math.floor;
 import static um.fyp.Config.EDLConfig.*;
 
@@ -29,13 +30,13 @@ public class EDLConfigWindow extends Window {
     JLabel errorName;
     JButton save;
     List<JPanel> textFieldPairs;
-    static Color defaultColor = new Color(51, 51, 51);
+    public static Color defaultColor = new Color(51, 51, 51);
     int index;
     EDLConfig currentConfig;
 
     EDLConfig lastDefault;
     File sourceFile;
-    static String errorMessage = "";
+    public static String errorMessage = "";
     ActionListener listener = new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -46,19 +47,29 @@ public class EDLConfigWindow extends Window {
     public EDLConfigWindow(EDLConfig config) {
 
         super(480, 530, "Edit track", true, false);
-        setElements(config);
+        if (config == null) {
+            setElements(EDLConfig.defaultsWithFile(0));
+            index = -1;
+        }
+        else {
+            setElements(config);
+            index = config.track-1;
+        }
         addActionListenersToAllComponents();
-        index = config.track-1;
+
     }
 
     public void setElements(EDLConfig c) {
         currentConfig = c;
         if (c.track != 0) trackName.setText("Editing track " + c.track);
+        else trackName.setText("Editing all tracks");
         defaultsStatus.setText(c.edited ? "Custom settings loaded" : "Default settings loaded");
         includeVideo.setSelected(c.includeVideo);
         alternateTracks.setSelected(c.alternateTracks);
-        octave.setSelectedIndex((int)(2-floor((c.pitchOffset/12))));
-        note.setSelectedIndex(c.pitchOffset%12);
+        int realoffset = c.pitchOffset*(-1);
+        octave.setSelectedIndex((int)(2+floor(((double)realoffset/12))));
+        if (realoffset<0) note.setSelectedIndex(12-Math.abs(realoffset%12));
+        else note.setSelectedIndex(Math.abs(realoffset%12));
         if (c.fileName != null) {
             sourceFile = new File(c.fileName);
             path.setText(getName(c.fileName));
@@ -80,6 +91,7 @@ public class EDLConfigWindow extends Window {
         config.includeVideo = includeVideo.isSelected();
         config.alternateTracks = alternateTracks.isSelected();
         config.pitchOffset = ((12*octave.getSelectedIndex()) - 24) + note.getSelectedIndex();
+        config.pitchOffset*=(-1);
         config.fileName = sourceFile.getAbsolutePath();
         config.playRate = Double.parseDouble(((JTextField)textFieldPairs.get(0).getComponent(1)).getText());
         config.streamStart = Double.parseDouble(((JTextField)textFieldPairs.get(1).getComponent(1)).getText());
@@ -92,20 +104,36 @@ public class EDLConfigWindow extends Window {
 
         config.edited = !defaultsStatus.getText().equals("Default settings loaded");
 
-        MainWindow.configs.set((currentConfig.track-1), config);
-
-        if (config.edited) {
-            if (MainWindow.fileInfo.getElementAt((currentConfig.track-1)).contains("Default")) {
-                MainWindow.fileInfo.set((currentConfig.track-1), MainWindow.fileInfo.getElementAt((currentConfig.track-1)).replace("Default settings loaded", "Settings customised"));
+        if (config.track == 0) {
+            for (int i = 0; i < MainWindow.configs.size(); i++) {
+                config.track = i+1;
+                MainWindow.configs.set(i, (EDLConfig) config.clone());
+                if (config.edited) {
+                    if (MainWindow.fileInfo.getElementAt((i)).contains("Default")) {
+                        MainWindow.fileInfo.set((i), MainWindow.fileInfo.getElementAt((i)).replace("Default settings loaded", "Settings customised"));
+                    }
+                }
+                else {
+                    if (MainWindow.fileInfo.getElementAt((i)).contains("customised")) {
+                        MainWindow.fileInfo.set((i), MainWindow.fileInfo.getElementAt((i)).replace("Settings customised", "Default settings loaded"));
+                    }
+                }
             }
         }
         else {
-            if (MainWindow.fileInfo.getElementAt((currentConfig.track-1)).contains("customised")) {
-                MainWindow.fileInfo.set((currentConfig.track-1), MainWindow.fileInfo.getElementAt((currentConfig.track-1)).replace("Settings customised", "Default settings loaded"));
+            MainWindow.configs.set((currentConfig.track-1), config);
+
+            if (config.edited) {
+                if (MainWindow.fileInfo.getElementAt((currentConfig.track-1)).contains("Default")) {
+                    MainWindow.fileInfo.set((currentConfig.track-1), MainWindow.fileInfo.getElementAt((currentConfig.track-1)).replace("Default settings loaded", "Settings customised"));
+                }
+            }
+            else {
+                if (MainWindow.fileInfo.getElementAt((currentConfig.track-1)).contains("customised")) {
+                    MainWindow.fileInfo.set((currentConfig.track-1), MainWindow.fileInfo.getElementAt((currentConfig.track-1)).replace("Settings customised", "Default settings loaded"));
+                }
             }
         }
-
-
 
     }
 
@@ -227,8 +255,10 @@ public class EDLConfigWindow extends Window {
             FileNameExtensionFilter vegFilter = new FileNameExtensionFilter("Veg offsets", "veg");
             chooser.addChoosableFileFilter(mediaFilter);
             chooser.addChoosableFileFilter(vegFilter);
+            chooser.setFileFilter(mediaFilter);
             if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
                 path.setText(chooser.getSelectedFile().getName());
+                sourceFile = chooser.getSelectedFile();
                 defaultsStatus.setText("Settings customised");
             }
         });

@@ -1,12 +1,5 @@
 package um.fyp.EDLObjects;
 
-import um.fyp.Config.EDLConfig;
-import um.fyp.EdlToMidi;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.ObjectInputFilter;
 import java.util.ArrayList;
 import java.util.List;
 

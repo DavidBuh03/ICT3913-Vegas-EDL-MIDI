@@ -1,6 +1,4 @@
-package um.fyp.MIDIObjects;
-
-import um.fyp.MIDIConfigWindow;
+package um.fyp.Config;
 
 public class MIDIConfig {
     public int ppq;

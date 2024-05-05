@@ -1,5 +1,7 @@
-package um.fyp.Config;
+package um.fyptest;
 
+
+import um.fyp.Config.EDLConfig;
 
 import java.io.File;
 import java.io.FileWriter;

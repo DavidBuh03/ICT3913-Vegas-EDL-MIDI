@@ -1,8 +1,7 @@
-package um.fyp;
+package um.fyp.Windows;
 
-import um.fyp.Config.EDLConfig;
 import um.fyp.GUIHelper.Window;
-import um.fyp.MIDIObjects.MIDIConfig;
+import um.fyp.Config.MIDIConfig;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -12,11 +11,9 @@ import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import static um.fyp.Config.EDLConfig.guiParameters;
-import static um.fyp.Config.EDLConfig.numericComboBoxes;
-import static um.fyp.EDLConfigWindow.*;
-import static um.fyp.MIDIObjects.MIDIConfig.descriptions;
-import static um.fyp.MIDIObjects.MIDIConfig.fields;
+import static um.fyp.Windows.EDLConfigWindow.*;
+import static um.fyp.Config.MIDIConfig.descriptions;
+import static um.fyp.Config.MIDIConfig.fields;
 
 public class MIDIConfigWindow extends Window {
 

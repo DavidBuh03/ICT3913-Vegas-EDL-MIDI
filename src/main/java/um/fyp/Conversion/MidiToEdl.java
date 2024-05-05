@@ -1,7 +1,6 @@
-package um.fyp;
+package um.fyp.Conversion;
 
 import um.fyp.Config.EDLConfig;
-import um.fyp.EDLObjects.EDL;
 import um.fyp.MIDIObjects.CreateMIDI;
 import um.fyp.MIDIObjects.Note;
 
@@ -19,6 +18,7 @@ public class MidiToEdl {
     public static boolean setTrackList(File inputMidi, DefaultListModel<String> model, List<EDLConfig> configs, List<Integer> polyphonies) {
         model.removeAllElements();
         configs.removeAll(configs);
+        polyphonies.removeAll(polyphonies);
         int lastTrackNoteCount = 0;
         try {
             Sequence sequence = MidiSystem.getSequence(inputMidi);
@@ -52,11 +52,13 @@ public class MidiToEdl {
                 }
                 if (notesFound) {
                     model.addElement("Track " + (trackCount - trackOffset) + " - " + lastTrackNoteCount + " Notes - Max Polyphony: " + maxPolyphony + " - Default settings loaded");
+                    Thread.sleep(3);
                     configs.add(EDLConfig.defaultsWithFile((trackCount - trackOffset)));
                     polyphonies.add(maxPolyphony);
 
                 }
             }
+            Thread.sleep(10);
             return true;
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -87,7 +89,7 @@ public class MidiToEdl {
             boolean firstNoteFound = false;
             Sequence sequence = MidiSystem.getSequence(inputMidi);
             FileWriter fw = new FileWriter(outputFile);
-            fw.write(EDL.header(true));
+            fw.write(EDLConfig.edlHeader(true));
             int tickLength = CreateMIDI.getTickLength(sequence);
             EDLConfig lastConfig = new EDLConfig();
             Track[] tracks = sequence.getTracks();
@@ -95,11 +97,12 @@ public class MidiToEdl {
                 trackCount++;
 
                 if (firstNoteFound) {
-                    status.setText("Processing track " + (trackCount+1) + "/" + (tracks.length-(trackOffset-1)));
+                    status.setText("Processing track " + (trackCount+1) + "/" + (tracks.length-(trackOffset)));
                     status.repaint();
                     lastConfig = configs.get(trackCount);
                     notes = new Note[polys.get(trackCount)];
                     audioTrackEdl = new ArrayList<>();
+                    videoTrackEdl = new ArrayList<>();
                     for (int j = 0; j < notes.length; j++) {
                         audioTrackEdl.add(new ArrayList<>());
                     }
@@ -137,10 +140,10 @@ public class MidiToEdl {
                                                         "; " + "AUDIO" +
                                                         "; " + "\"" + lastConfig.fileName + "\"" +
                                                         "; " + 0 +
-                                                        "; " + fourDigits.format(lastConfig.streamStart*1000) +
+                                                        "; " + fourDigits.format(lastConfig.streamStart*1000/lastConfig.playRate) +
                                                         "; " + fourDigits.format(((event.getTick() - notes[j].startTick)*tickLength)/1000) +
-                                                        "; " + fourDigits.format(lastConfig.fadeTimeIn) +
-                                                        "; " + fourDigits.format(lastConfig.fadeTimeOut) +
+                                                        "; " + fourDigits.format(lastConfig.fadeTimeIn*1000) +
+                                                        "; " + fourDigits.format(lastConfig.fadeTimeOut*1000) +
                                                         "; " + sixDigits.format(notes[j].velocity/127f) +
                                                         "; " + lastConfig.curveIn +
                                                         "; " + sixDigits.format(0) +
@@ -172,10 +175,10 @@ public class MidiToEdl {
                                                                 "; " + "VIDEO" +
                                                                 "; " + "\"" + lastConfig.fileName + "\"" +
                                                                 "; " + 0 +
-                                                                "; " + fourDigits.format(lastConfig.streamStart*1000) +
+                                                                "; " + fourDigits.format(lastConfig.streamStart*1000/lastConfig.playRate) +
                                                                 "; " + fourDigits.format(((event.getTick() - notes[j].startTick)*tickLength)/1000) +
-                                                                "; " + fourDigits.format(lastConfig.fadeTimeIn) +
-                                                                "; " + fourDigits.format(lastConfig.fadeTimeOut) +
+                                                                "; " + fourDigits.format(lastConfig.fadeTimeIn*1000) +
+                                                                "; " + fourDigits.format(lastConfig.fadeTimeOut*1000) +
                                                                 "; " + 1 +
                                                                 "; " + lastConfig.curveIn +
                                                                 "; " + sixDigits.format(0) +
@@ -219,7 +222,7 @@ public class MidiToEdl {
                                     firstNoteFound = true;
                                     trackOffset = trackCount;
                                     trackCount = 0;
-                                    status.setText("Processing track " + (trackCount+1) + "/" + (tracks.length-(trackOffset-1)));
+                                    status.setText("Processing track " + (trackCount+1) + "/" + (tracks.length-(trackOffset)));
                                     status.repaint();
                                     lastConfig = configs.get(trackCount);
                                     notes = new Note[polys.get(trackCount)];
@@ -238,7 +241,9 @@ public class MidiToEdl {
                                 for (int j = 0; j < notes.length; j++) {
                                     if (notes[j] == null) {
                                         notes[j] = new Note(sMessage.getData1(), sMessage.getData2(), event.getTick());
-                                        if (!videoMarkers.contains(notes[j].startTick)) videoMarkers.add(notes[j].startTick);
+                                        if (!videoMarkers.contains(notes[j].startTick)) {
+                                            videoMarkers.add(notes[j].startTick);
+                                        }
                                         break noteloop;
                                     }
 
