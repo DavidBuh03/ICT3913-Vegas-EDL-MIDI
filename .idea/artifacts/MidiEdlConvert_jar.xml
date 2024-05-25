@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="MidiEdlConvert:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/MidiEdlConvert_jar</output-path>
+    <root id="archive" name="MidiEdlConvert.jar">
+      <element id="module-output" name="MidiEdlConvert" />
+    </root>
+  </artifact>
+</component>

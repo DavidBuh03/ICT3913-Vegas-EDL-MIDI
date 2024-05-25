@@ -174,13 +174,14 @@ public class EDLConfig implements Cloneable {
     }
 
     public static EDLConfig defaultsWithFile(int track) {
+        File source = new File("resources\\middle c.mp4");
         EDLConfig defaults = new EDLConfig();
         defaults.edited = false;
         defaults.track = track;
         defaults.includeVideo = true;
         defaults.alternateTracks = true;
         defaults.pitchOffset = 0;
-        defaults.fileName = "D:\\users ssd\\Downloads\\middle c.mp4";
+        defaults.fileName = source.getAbsolutePath();
         defaults.playRate = 1;
         defaults.streamStart = 0;
         defaults.fadeTimeIn = 0.01;
