@@ -10,7 +10,7 @@ Or go to Releases, download and extract artefact.zip, then run MidiEdlConvert.ja
 ![image](https://github.com/DavidBuh03/ICT3913-Vegas-EDL-MIDI/assets/103522244/c7cec098-807a-4d4c-95c6-bbd774037848)
 
 
-##Build and run from source
+## Build and run from source
 A working JDK and IntelliJ installation is required
 Clone the Repo in IntelliJ or download ZIP, then open the project with IntellIJ
 Navigate to the Main class in src/main/java/um.fyp, then click on Run
